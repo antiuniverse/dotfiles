@@ -1,0 +1,9 @@
+[user]
+	name = Zach Brockway
+	email = neverender@gmail.com
+[color]
+	ui = true
+[core]
+	excludesfile = ~/.gitignore
+[credential]
+	helper = osxkeychain

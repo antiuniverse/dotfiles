@@ -1,8 +1,9 @@
-# ~/.bashrc: executed by bash(1) for non-login shells.
-# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
-# for examples
+# System-wide bashrc.
+if [ -f /etc/bashrc ]; then
+	source /etc/bashrc
+fi
 
-# If not running interactively, don't do anything
+# If not running interactively, don't do anything more.
 [ -z "$PS1" ] && return
 
 # force correct UTF8 characters for e.g. line drawing
@@ -23,6 +24,31 @@ HISTFILESIZE=2000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
+# Alias definitions.
+if [ -f ~/.bash_aliases ]; then
+	source ~/.bash_aliases
+fi
+
+# Programmable completion.
+if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+	source /etc/bash_completion
+fi
+
+if [ -n "$(command -v brew)" ]; then
+	if [ -f "$(brew --prefix)/etc/bash_completion" ]; then
+		source "$(brew --prefix)/etc/bash_completion"
+	fi
+fi
+
+# dircolors
+if [ -r ~/.dircolors ]; then
+	if [ -n "$(command -v dircolors)" ]
+		then eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+	elif [ -n "$(command -v gdircolors)" ]
+		then eval "$(gdircolors -b ~/.dircolors)" || eval "$(gdircolors -b)"
+	fi
+fi
+
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
@@ -38,45 +64,24 @@ case "$TERM" in
 esac
 
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[32m\]\u@\h\[\033[00m\]:\[\033[34m\]\w\[\033[00m\]\$ '
+	if [ "$(type -t __git_ps1)" == "function" ]; then
+		PS1='${debian_chroot:+($debian_chroot)}\[\033[32m\]\u@\h\[\033[00m\]:\[\033[34m\]\w\[\033[35m\]$(__git_ps1 " (%s)")\[\033[00m\]\$ '
+	else
+		PS1='${debian_chroot:+($debian_chroot)}\[\033[32m\]\u@\h\[\033[00m\]:\[\033[34m\]\w\[\033[00m\]\$ '
+	fi
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+	if [ "$(type -t __git_ps1)" == "function" ]; then
+		PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(__git_ps1 " (%s)")\$ '
+	else
+		PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+	fi
 fi
-unset color_prompt
 
 # If this is an xterm set the title to user@host:dir
-case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
-
-# enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-    alias dir='dir --color=auto'
-    alias vdir='vdir --color=auto'
-
-    alias grep='grep --color=auto'
-    alias fgrep='fgrep --color=auto'
-    alias egrep='egrep --color=auto'
-fi
-
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
-
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
-# sources /etc/bash.bashrc).
-if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
-    . /etc/bash_completion
-fi
+#case "$TERM" in
+#xterm*|rxvt*)
+#	PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+#	;;
+#*)
+#	;;
+#esac
